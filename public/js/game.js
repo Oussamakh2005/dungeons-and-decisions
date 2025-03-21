@@ -1,6 +1,6 @@
 const buttons = document.getElementsByClassName('choice-btn');
 const output = document.getElementById('output');
-const socket = io("http://localhost:5000");
+const socket = io();
 let decisions = [];
 let playerDecision = "";
 socket.on('start', (data) => {
