@@ -1,34 +1,29 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const http_1 = require("http");
-const express_1 = __importDefault(require("express"));
-const socket_io_1 = require("socket.io");
-const env_1 = require("./config/env");
-const path_1 = __importDefault(require("path"));
-const startGame_1 = __importDefault(require("./ai/startGame"));
-const messages_1 = require("@langchain/core/messages");
-const prompts_1 = require("./data/prompts");
-const continueGame_1 = __importDefault(require("./ai/continueGame"));
-const app = (0, express_1.default)();
-app.use(express_1.default.static(path_1.default.join(process.cwd(), "public")));
+import { createServer } from "http";
+import express from "express";
+import { Server } from "socket.io";
+import { PORT } from "./config/env.js";
+import path from "path";
+import startGame from "./ai/startGame.js";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { createNewStory, systemSetRole } from "./data/prompts.js";
+import continueGame from "./ai/continueGame.js";
+const app = express();
+app.use(express.static(path.join(process.cwd(), "public")));
 app.get('/game', (req, res) => {
-    res.sendFile(path_1.default.join(process.cwd(), "public", "game.html"));
+    res.sendFile(path.join(process.cwd(), "public", "game.html"));
 });
-const httpServer = (0, http_1.createServer)(app);
-const io = new socket_io_1.Server(httpServer);
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 io.on('connection', async (socket) => {
-    const history = [new messages_1.SystemMessage(prompts_1.systemSetRole), new messages_1.HumanMessage(prompts_1.createNewStory)];
-    const game = await (0, startGame_1.default)(history);
-    history.push(new messages_1.AIMessage(game.story));
+    const history = [new SystemMessage(systemSetRole), new HumanMessage(createNewStory)];
+    const game = await startGame(history);
+    history.push(new AIMessage(game.story));
     socket.emit('start', game);
     socket.on('decision', async (decision) => {
-        history.push(new messages_1.HumanMessage(decision));
-        const data = await (0, continueGame_1.default)(history);
-        history.push(new messages_1.AIMessage(data.situation));
+        history.push(new HumanMessage(decision));
+        const data = await continueGame(history);
+        history.push(new AIMessage(data.situation));
         socket.emit('update', data);
     });
 });
-httpServer.listen(env_1.PORT);
+httpServer.listen(PORT);

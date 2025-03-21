@@ -1,12 +1,7 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const model_1 = __importDefault(require("./model"));
-const situation_1 = require("../schema/situation");
+import model from "./model.js";
+import { startGameSchema } from "../schema/situation.js";
 const startGame = async (messages) => {
-    const response = await model_1.default.withStructuredOutput(situation_1.startGameSchema).invoke(messages);
+    const response = await model.withStructuredOutput(startGameSchema).invoke(messages);
     return response;
 };
-exports.default = startGame;
+export default startGame;

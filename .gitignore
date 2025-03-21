@@ -1,4 +1,5 @@
 node_modules
 src
 .qodo
+.env
 tsconfig.json
